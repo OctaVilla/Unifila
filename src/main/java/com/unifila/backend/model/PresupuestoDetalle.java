@@ -1,10 +1,12 @@
 package com.unifila.backend.model;
 
-import jakarta.persistence.*;
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import jakarta.persistence.*;
 
+import java.math.BigDecimal;
 
 @Entity
+@Table(name = "presupuesto_detalle")
 public class PresupuestoDetalle {
 
     @Id
@@ -13,10 +15,11 @@ public class PresupuestoDetalle {
 
     private Integer cantidad;
 
-    private Double precioUnitario;
+    @Column(name = "precio_unitario", precision = 15, scale = 2)
+    private BigDecimal precioUnitario;
 
     @ManyToOne
-    @JoinColumn(name = "producto_id")
+    @JoinColumn(name = "producto_id", nullable = false)
     private Producto producto;
 
     @ManyToOne
@@ -24,44 +27,27 @@ public class PresupuestoDetalle {
     @JsonBackReference
     private Presupuesto presupuesto;
 
+    // histórico del tipo usado para calcular precio (VENTA / ALQUILER)
+    @Column(name = "tipo_operacion", length = 20)
+    private String tipoOperacion;
 
-    public Long getId() {
-        return id;
-    }
+    // --- Getters y Setters ---
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-    public Integer getCantidad() {
-        return cantidad;
-    }
+    public Integer getCantidad() { return cantidad; }
+    public void setCantidad(Integer cantidad) { this.cantidad = cantidad; }
 
-    public void setCantidad(Integer cantidad) {
-        this.cantidad = cantidad;
-    }
+    public BigDecimal getPrecioUnitario() { return precioUnitario; }
+    public void setPrecioUnitario(BigDecimal precioUnitario) { this.precioUnitario = precioUnitario; }
 
-    public Double getPrecioUnitario() {
-        return precioUnitario;
-    }
+    public Producto getProducto() { return producto; }
+    public void setProducto(Producto producto) { this.producto = producto; }
 
-    public void setPrecioUnitario(Double precioUnitario) {
-        this.precioUnitario = precioUnitario;
-    }
+    public Presupuesto getPresupuesto() { return presupuesto; }
+    public void setPresupuesto(Presupuesto presupuesto) { this.presupuesto = presupuesto; }
 
-    public Producto getProducto() {
-        return producto;
-    }
-
-    public void setProducto(Producto producto) {
-        this.producto = producto;
-    }
-
-    public Presupuesto getPresupuesto() {
-        return presupuesto;
-    }
-
-    public void setPresupuesto(Presupuesto presupuesto) {
-        this.presupuesto = presupuesto;
-    }
+    public String getTipoOperacion() { return tipoOperacion; }
+    public void setTipoOperacion(String tipoOperacion) { this.tipoOperacion = tipoOperacion; }
 }

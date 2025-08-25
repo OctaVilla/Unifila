@@ -2,6 +2,7 @@ package com.unifila.backend.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
+import java.math.BigDecimal;
 
 @Entity
 public class FacturaDetalle {
@@ -12,7 +13,8 @@ public class FacturaDetalle {
 
     private int cantidad;
 
-    private double precioUnitario;
+    @Column(precision = 15, scale = 2) // ✅ recomendado para dinero
+    private BigDecimal precioUnitario;
 
     @ManyToOne
     @JoinColumn(name = "producto_id")
@@ -25,43 +27,18 @@ public class FacturaDetalle {
 
     // ===== Getters y Setters =====
 
-    public Long getId() {
-        return id;
-    }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+    public int getCantidad() { return cantidad; }
+    public void setCantidad(int cantidad) { this.cantidad = cantidad; }
 
-    public int getCantidad() {
-        return cantidad;
-    }
+    public BigDecimal getPrecioUnitario() { return precioUnitario; }
+    public void setPrecioUnitario(BigDecimal precioUnitario) { this.precioUnitario = precioUnitario; }
 
-    public void setCantidad(int cantidad) {
-        this.cantidad = cantidad;
-    }
+    public Producto getProducto() { return producto; }
+    public void setProducto(Producto producto) { this.producto = producto; }
 
-    public double getPrecioUnitario() {
-        return precioUnitario;
-    }
-
-    public void setPrecioUnitario(double precioUnitario) {
-        this.precioUnitario = precioUnitario;
-    }
-
-    public Producto getProducto() {
-        return producto;
-    }
-
-    public void setProducto(Producto producto) {
-        this.producto = producto;
-    }
-
-    public Factura getFactura() {
-        return factura;
-    }
-
-    public void setFactura(Factura factura) {
-        this.factura = factura;
-    }
+    public Factura getFactura() { return factura; }
+    public void setFactura(Factura factura) { this.factura = factura; }
 }

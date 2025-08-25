@@ -1,15 +1,27 @@
 package com.unifila.backend.controller;
 
 import com.unifila.backend.dto.PresupuestoDTO;
+import com.unifila.backend.dto.PresupuestoDetalleDTO;
+import com.unifila.backend.dto.PresupuestoResumenDTO;
 import com.unifila.backend.model.Presupuesto;
 import com.unifila.backend.service.PresupuestoService;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.CacheControl;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.URI;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.time.format.DateTimeFormatter;
+import java.util.Map;
+
 @RestController
 @RequestMapping("/presupuestos")
+@CrossOrigin(origins = {"http://localhost:5173","http://localhost:3000"})
 public class PresupuestoController {
 
     private final PresupuestoService presupuestoService;
@@ -20,26 +32,66 @@ public class PresupuestoController {
 
     // Crear presupuesto
     @PostMapping
-    public ResponseEntity<Presupuesto> crearPresupuesto(@RequestBody PresupuestoDTO dto) {
-        Presupuesto nuevo = presupuestoService.crearPresupuesto(dto);
-        return ResponseEntity.ok(nuevo);
+    public ResponseEntity<?> crearPresupuesto(@RequestBody PresupuestoDTO dto) {
+        Presupuesto creado = presupuestoService.crearPresupuesto(dto);
+        var location = URI.create("/presupuestos/" + (creado != null ? creado.getId() : null));
+        return ResponseEntity.created(location).body(Map.of(
+                "success", true,
+                "message", "Presupuesto creado",
+                "data", creado
+        ));
     }
 
-    // Obtener presupuesto por ID
+    // Listar presupuestos (paginado + filtros opcionales)
+    @GetMapping
+    public ResponseEntity<?> listar(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String estado,
+            @RequestParam(required = false) Long clienteId
+    ) {
+        var pageData = presupuestoService.listar(page, size, estado, clienteId); // Page<PresupuestoResumenDTO>
+        return ResponseEntity.ok(Map.of(
+                "success", true,
+                "data", pageData.getContent(),
+                "page", pageData.getNumber(),
+                "size", pageData.getSize(),
+                "total", pageData.getTotalElements()
+        ));
+    }
+
+    // Detalle por ID (DTO listo para front)
     @GetMapping("/{id}")
-    public ResponseEntity<Presupuesto> obtenerPresupuesto(@PathVariable Long id) {
-        Presupuesto presupuesto = presupuestoService.obtenerPorId(id);
-        return ResponseEntity.ok(presupuesto);
+    public ResponseEntity<?> obtenerPresupuesto(@PathVariable Long id) {
+        PresupuestoDetalleDTO dto = presupuestoService.obtenerDTOPorId(id);
+        return ResponseEntity.ok(Map.of("success", true, "data", dto));
     }
 
-    // Generar PDF de presupuesto
-    @GetMapping("/{id}/pdf")
-    public ResponseEntity<byte[]> obtenerPdf(@PathVariable Long id) {
+    // PDF inline por defecto; ?download=true para descargar
+    @GetMapping(value = "/{id}/pdf", produces = MediaType.APPLICATION_PDF_VALUE)
+    public ResponseEntity<Resource> obtenerPdf(
+            @PathVariable Long id,
+            @RequestParam(defaultValue = "false") boolean download
+    ) {
+        Presupuesto p = presupuestoService.obtenerPorId(id);
         byte[] pdfBytes = presupuestoService.generarPdfPresupuestoPorId(id);
 
+        String fecha = (p.getFecha() != null)
+                ? p.getFecha().format(DateTimeFormatter.ISO_DATE)
+                : "sin_fecha";
+
+        String cliente = (p.getCliente() != null && p.getCliente().getNombre() != null)
+                ? p.getCliente().getNombre().replaceAll("[^\\p{L}\\p{N}_-]+", "_")
+                : "cliente";
+
+        String base = "presupuesto_" + cliente + "_" + fecha + ".pdf";
+        String fileName = URLEncoder.encode(base, StandardCharsets.UTF_8);
+        String disposition = (download ? "attachment" : "inline") + "; filename*=UTF-8''" + fileName;
+
         return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=presupuesto_" + id + ".pdf")
+                .header(HttpHeaders.CONTENT_DISPOSITION, disposition)
+                .cacheControl(CacheControl.noCache())
                 .contentType(MediaType.APPLICATION_PDF)
-                .body(pdfBytes);
+                .body(new ByteArrayResource(pdfBytes));
     }
 }

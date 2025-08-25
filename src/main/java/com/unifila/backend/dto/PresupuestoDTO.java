@@ -13,7 +13,7 @@ public class PresupuestoDTO {
     public static class ItemDetalleDTO {
         private Long productoId;
         private Integer cantidad;
-        private Double precioUnitario;
+        private String tipoOperacion; // "VENTA" o "ALQUILER"
 
         public Long getProductoId() {
             return productoId;
@@ -31,13 +31,8 @@ public class PresupuestoDTO {
             this.cantidad = cantidad;
         }
 
-        public Double getPrecioUnitario() {
-            return precioUnitario;
-        }
-
-        public void setPrecioUnitario(Double precioUnitario) {
-            this.precioUnitario = precioUnitario;
-        }
+        public String getTipoOperacion() { return tipoOperacion; }
+        public void setTipoOperacion(String tipoOperacion) { this.tipoOperacion = tipoOperacion; }
     }
 
     public LocalDate getFecha() {

@@ -1,6 +1,8 @@
 package com.unifila.backend.model;
 
 import jakarta.persistence.*;
+import java.math.BigDecimal;
+
 
 @Entity
 public class Producto {
@@ -10,6 +12,13 @@ public class Producto {
     private Long id;
 
     private String nombre;
+
+    // ✅ Nuevos campos
+    @Column(name = "precio_venta")
+    private BigDecimal precioVenta;
+
+    @Column(name = "precio_alquiler")
+    private BigDecimal precioAlquiler;
 
     private String descripcion;
 
@@ -40,6 +49,22 @@ public class Producto {
 
     public void setDescripcion(String descripcion) {
         this.descripcion = descripcion;
+    }
+
+    public BigDecimal getPrecioVenta() {
+        return precioVenta;
+    }
+
+    public void setPrecioVenta(BigDecimal precioVenta) {
+        this.precioVenta = precioVenta;
+    }
+
+    public BigDecimal getPrecioAlquiler() {
+        return precioAlquiler;
+    }
+
+    public void setPrecioAlquiler(BigDecimal precioAlquiler) {
+        this.precioAlquiler = precioAlquiler;
     }
 
 
